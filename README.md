@@ -1,1 +1,1 @@
-# bible-reference-explorer-api
+# Bible Reference Explorer API
