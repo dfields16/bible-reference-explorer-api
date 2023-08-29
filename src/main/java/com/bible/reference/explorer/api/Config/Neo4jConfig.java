@@ -11,18 +11,18 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class Neo4jConfig {
 
-	@Value("")
-	public String uri;
+	@Value("${neo4j.url}")
+	public String url;
 
-		@Value("")
+		@Value("${neo4j.username}")
 	public String username;
 
-		@Value("")
+		@Value("${neo4j.password}")
 	public String password;
 
 	@Bean
 	public Driver driver(){
-		return GraphDatabase.driver(uri, AuthTokens.basic(username, password));
+		return GraphDatabase.driver(url, AuthTokens.basic(username, password));
 	}
 
 	@Bean
