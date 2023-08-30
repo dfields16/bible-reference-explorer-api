@@ -1,4 +1,4 @@
 neo4j:
   username: neo4j
   password:
-  url: neo4j://45.33.127.200:7687/
+  url: neo4j://bible-reference-explorer.com:7687
