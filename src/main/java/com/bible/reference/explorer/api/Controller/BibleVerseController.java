@@ -48,10 +48,20 @@ public class BibleVerseController {
 		}
 	}
 
+	@GetMapping("/api/verify/{verse}")
+	public boolean verifyVerseApi(@PathVariable("verse") String verse) throws Exception {
+		try {
+			verifyVerse(verse);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
 	private int verifyLimit(int limit) {
-		if (limit <= 10){
+		if (limit <= 10) {
 			return 10;
-		}else if (limit >= 50){
+		} else if (limit >= 50) {
 			return 50;
 		}
 		return limit;
