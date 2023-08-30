@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bible.reference.explorer.api.model.BibleBook;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 public class BibleVerseController {
 
@@ -32,6 +35,7 @@ public class BibleVerseController {
 		try {
 			String verseReference = verifyVerse(verse);
 			int validLimit = verifyLimit(limit);
+			log.info("Querying verse={} with limit={}", verseReference, validLimit);
 
 			var variable = session.executeWrite(tx -> {
 				var query = getVerseQuery(verseReference, validLimit);
