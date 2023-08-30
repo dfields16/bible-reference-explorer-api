@@ -68,7 +68,7 @@ public class BibleVerseController {
 	}
 
 	public String verifyVerse(String bibleRef) throws Exception {
-		String[] parts = bibleRef.split(".");
+		String[] parts = bibleRef.split("\\.");
 		String book = parts[0];
 		Integer chapter = Integer.valueOf(parts[1]);
 		Integer verse = Integer.valueOf(parts[2]);
