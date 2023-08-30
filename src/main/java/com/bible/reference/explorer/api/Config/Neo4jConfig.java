@@ -14,19 +14,19 @@ public class Neo4jConfig {
 	@Value("${neo4j.url}")
 	public String url;
 
-		@Value("${neo4j.username}")
+	@Value("${neo4j.username}")
 	public String username;
 
-		@Value("${neo4j.password}")
+	@Value("${neo4j.password}")
 	public String password;
 
 	@Bean
-	public Driver driver(){
+	public Driver driver() {
 		return GraphDatabase.driver(url, AuthTokens.basic(username, password));
 	}
 
 	@Bean
-	public Session session(Driver driver){
+	public Session session(Driver driver) {
 		return driver.session();
 	}
 
