@@ -2,7 +2,10 @@ package com.bible.reference.explorer.api.Controller;
 
 import static org.neo4j.driver.Values.*;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.neo4j.driver.Query;
@@ -13,6 +16,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bible.reference.explorer.api.model.BibleBook;
+import com.bible.reference.explorer.api.model.CrossReferenceResult;
+import com.bible.reference.explorer.api.model.References;
+import com.bible.reference.explorer.api.model.Verse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -31,20 +37,32 @@ public class BibleVerseController {
 	Map<String, BibleBook> bibleMap;
 
 	@GetMapping("/api/getReferences/{verse}/{limit}")
-	public String getMappingString(@PathVariable("verse") String verse, @PathVariable("limit") int limit) throws Exception {
+	public CrossReferenceResult getMappingString(@PathVariable("verse") String verse, @PathVariable("limit") int limit)
+			throws Exception {
 		try {
 			String verseReference = verifyVerse(verse);
 			int validLimit = verifyLimit(limit);
 			log.info("Querying verse={} with limit={}", verseReference, validLimit);
 
-			var variable = session.executeWrite(tx -> {
-				var query = getVerseQuery(verseReference, validLimit);
-				var result = tx.run(query);
-				return result.list().stream().map(x -> x.keys()).collect(Collectors.toList());
+			Set<Verse> verses = new HashSet<>();
+			Set<References> references = new HashSet<>();
+
+			session.run(getVerseQuery(verseReference, validLimit)).list(x -> {
+				verses.add(new Verse(x.get("o").asNode()));
+				verses.add(new Verse(x.get("p").asNode()));
+				references.add(new References(x.get("rel").asRelationship()));
+				references.add(new References(x.get("n").asRelationship()));
+				return x;
 			});
-			return objectMapper.writeValueAsString(variable);
+
+			Map<String, Verse> verseMap = verses.stream().collect(Collectors.toMap(x->x.getId(), Function.identity()));
+			references.removeIf(ref ->{
+				return !verseMap.containsKey(ref.getFrom()) || !verseMap.containsKey(ref.getTo());
+			});
+
+			return new CrossReferenceResult(verses, references);
 		} catch (Exception e) {
-			return e.getMessage();
+			return null;
 		}
 	}
 

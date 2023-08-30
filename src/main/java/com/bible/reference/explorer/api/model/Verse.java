@@ -1,28 +1,28 @@
 package com.bible.reference.explorer.api.model;
 
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Property;
+import org.neo4j.driver.types.Node;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@Node
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Verse {
-
-	@Id
-	private long id;
-
-	@Property("title")
+	private String id;
 	private String title;
-
-	@Property("book")
 	private String book;
-
-	@Property("chapter")
 	private String chapter;
-
-	@Property("verse")
 	private String verse;
 
+	public Verse(Node node){
+		this.id = node.elementId();
+		this.title = node.get("title").asString();
+		this.book = node.get("book").asString();
+		this.chapter = node.get("chapter").asString();
+		this.verse = node.get("verse").asString();
+	}
 }
