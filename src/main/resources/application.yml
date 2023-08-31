@@ -1,4 +1,4 @@
 neo4j:
   username: neo4j
   password:
-  url: neo4j://172.16.238.1:7687
+  url: neo4j://172.16.238.2:7687
