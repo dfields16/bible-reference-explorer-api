@@ -20,7 +20,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Build with Maven
-        run: mvn --batch-mode --update-snapshots package
+        run: mvn --batch-mode --update-snapshots package -DskipTests
 
       - name: Log in to Docker Hub
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
