@@ -54,4 +54,4 @@ jobs:
         username: ${{ secrets.HOST_USERNAME }}
         password: ${{ secrets.HOST_PASSWORD }}
         port: ${{ secrets.HOST_PORT }}
-        script: bash update.sh
+        script: bash update-api.sh
