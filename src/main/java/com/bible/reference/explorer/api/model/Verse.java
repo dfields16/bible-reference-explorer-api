@@ -17,6 +17,7 @@ public class Verse {
 	private String book;
 	private String chapter;
 	private String verse;
+	private String label;
 
 	public Verse(Node node){
 		this.id = node.elementId();
@@ -24,5 +25,6 @@ public class Verse {
 		this.book = node.get("book").asString();
 		this.chapter = node.get("chapter").asString();
 		this.verse = node.get("verse").asString();
+		this.label = book + " " + chapter + ":" + verse;
 	}
 }
