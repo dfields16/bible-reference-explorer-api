@@ -2,3 +2,7 @@ neo4j:
   username: neo4j
   password:
   url: neo4j://172.16.238.2:7687
+
+bibleApi:
+  token: 1a13d45f994a3e1d68758b10d57c2963
+  baseUrl: https://api.scripture.api.bible/v1/

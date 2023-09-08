@@ -1,4 +1,4 @@
-package com.bible.reference.explorer.api.model;
+package com.bible.reference.explorer.api.model.Neo4j;
 
 import org.neo4j.driver.types.Node;
 

@@ -3,7 +3,9 @@ package com.bible.reference.explorer.api.Controller;
 import static org.neo4j.driver.Values.*;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -11,36 +13,47 @@ import java.util.stream.Collectors;
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.bible.reference.explorer.api.model.BibleBook;
-import com.bible.reference.explorer.api.model.CrossReferenceResult;
-import com.bible.reference.explorer.api.model.References;
-import com.bible.reference.explorer.api.model.Verse;
+import com.bible.reference.explorer.api.model.BibleApi.VerseApi;
+import com.bible.reference.explorer.api.model.BibleApi.VerseApiRaw;
+import com.bible.reference.explorer.api.model.BibleApi.VerseRequest;
+import com.bible.reference.explorer.api.model.Neo4j.CrossReferenceResult;
+import com.bible.reference.explorer.api.model.Neo4j.References;
+import com.bible.reference.explorer.api.model.Neo4j.Verse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 
 @Slf4j
 @RestController
 public class BibleVerseController {
 
 	@Autowired
-	public Session session;
+	protected Session session;
 
 	@Autowired
-	ObjectMapper objectMapper;
+	protected ObjectMapper objectMapper;
 
 	@Autowired
-	Map<String, BibleBook> bibleMap;
+	protected Map<String, BibleBook> bibleMap;
+
+	@Autowired
+	protected WebClient bibleWebClient;
 
 	@GetMapping("/api/getReferences/{verse}/{limit}")
 	public CrossReferenceResult getMappingString(@PathVariable("verse") String verse, @PathVariable("limit") int limit)
 			throws Exception {
 		try {
-			String verseReference = verifyVerse(verse);
+			String verseReference = verifyVerse(verse, true);
 			int validLimit = verifyLimit(limit);
 			log.info("Querying verse={} with limit={}", verseReference, validLimit);
 
@@ -55,8 +68,8 @@ public class BibleVerseController {
 				return x;
 			});
 
-			Map<String, Verse> verseMap = verses.stream().collect(Collectors.toMap(x->x.getId(), Function.identity()));
-			references.removeIf(ref ->{
+			Map<String, Verse> verseMap = verses.stream().collect(Collectors.toMap(x -> x.getId(), Function.identity()));
+			references.removeIf(ref -> {
 				return !verseMap.containsKey(ref.getFrom()) || !verseMap.containsKey(ref.getTo());
 			});
 
@@ -69,11 +82,47 @@ public class BibleVerseController {
 	@GetMapping("/api/verify/{verse}")
 	public boolean verifyVerseApi(@PathVariable("verse") String verse) throws Exception {
 		try {
-			verifyVerse(verse);
+			verifyVerse(verse, true);
 			return true;
 		} catch (Exception e) {
 			return false;
 		}
+	}
+
+	@PostMapping("/api/verses")
+	public List<VerseApi> getVersesFromBibleAPI(@RequestBody VerseRequest req){
+		return Flux.fromStream(req.getVerses().stream())
+				.parallel()
+				.map(x-> {
+					try {
+						return verifyVerse(x, false);
+					} catch (Exception e) {
+						return null;
+					}
+				})
+				.filter(Objects::nonNull)
+				.flatMap(x -> {
+					return bibleWebClient
+							.get()
+							.uri(uriBuilder -> uriBuilder
+									.path("bibles/06125adad2d5898a-01/verses/{verse}")
+									.queryParam("content-type",            "html")
+									.queryParam("include-notes",           false)
+									.queryParam("include-titles",          true)
+									.queryParam("include-chapter-numbers", false)
+									.queryParam("include-verse-numbers",   true)
+									.queryParam("include-verse-spans",     false)
+									.queryParam("use-org-id",              false)
+									.build(Map.of("verse", x)))
+							.accept(MediaType.APPLICATION_JSON)
+							.retrieve()
+							.bodyToMono(VerseApiRaw.class)
+							.retry(3);
+				})
+				.sequential()
+				.toStream()
+				.map(VerseApi::new)
+				.collect(Collectors.toList());
 	}
 
 	private int verifyLimit(int limit) {
@@ -85,7 +134,7 @@ public class BibleVerseController {
 		return limit;
 	}
 
-	public String verifyVerse(String bibleRef) throws Exception {
+	public String verifyVerse(String bibleRef, boolean isDbKey) throws Exception {
 		String[] parts = bibleRef.split("\\.");
 		String book = parts[0];
 		Integer chapter = Integer.valueOf(parts[1]);
@@ -94,7 +143,7 @@ public class BibleVerseController {
 		BibleBook bibleBook = bibleMap.get(book);
 		if (0 < chapter && chapter <= bibleBook.getChapterCount()) {
 			if (0 < verse && verse <= bibleBook.getVerseCountList().get(chapter - 1)) {
-				return bibleBook.getDbKey() + "." + chapter + "." + verse;
+				return (isDbKey ? bibleBook.getDbKey() : bibleBook.getApiKey()) + "." + chapter + "." + verse;
 			}
 		}
 		throw new Exception("Invalid Bible reference.");
