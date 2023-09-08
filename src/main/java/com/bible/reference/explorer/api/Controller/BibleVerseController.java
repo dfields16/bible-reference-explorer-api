@@ -14,6 +14,7 @@ import org.neo4j.driver.Query;
 import org.neo4j.driver.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +26,7 @@ import com.bible.reference.explorer.api.model.BibleBook;
 import com.bible.reference.explorer.api.model.BibleApi.VerseApi;
 import com.bible.reference.explorer.api.model.BibleApi.VerseApiRaw;
 import com.bible.reference.explorer.api.model.BibleApi.VerseRequest;
+import com.bible.reference.explorer.api.model.BibleApi.VerseResponse;
 import com.bible.reference.explorer.api.model.Neo4j.CrossReferenceResult;
 import com.bible.reference.explorer.api.model.Neo4j.References;
 import com.bible.reference.explorer.api.model.Neo4j.Verse;
@@ -90,8 +92,8 @@ public class BibleVerseController {
 	}
 
 	@PostMapping("/api/verses")
-	public List<VerseApi> getVersesFromBibleAPI(@RequestBody VerseRequest req){
-		return Flux.fromStream(req.getVerses().stream())
+	public VerseResponse getVersesFromBibleAPI(@RequestBody VerseRequest req){
+		List<VerseApi> verses = Flux.fromStream(req.getVerses().stream())
 				.parallel()
 				.map(x-> {
 					try {
@@ -123,6 +125,16 @@ public class BibleVerseController {
 				.toStream()
 				.map(VerseApi::new)
 				.collect(Collectors.toList());
+
+		if(!CollectionUtils.isEmpty(verses)){
+			return VerseResponse.builder()
+				.version(req.getBibleVersion().name())
+				.copyright(verses.get(0).getCopyright())
+				.verses(verses)
+			.build();
+		}
+
+		return null;
 	}
 
 	private int verifyLimit(int limit) {
