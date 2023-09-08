@@ -105,7 +105,7 @@ public class BibleVerseController {
 					return bibleWebClient
 							.get()
 							.uri(uriBuilder -> uriBuilder
-									.path("bibles/06125adad2d5898a-01/verses/{verse}")
+									.path("bibles/{bible}/verses/{verse}")
 									.queryParam("content-type",            "html")
 									.queryParam("include-notes",           false)
 									.queryParam("include-titles",          true)
@@ -113,7 +113,7 @@ public class BibleVerseController {
 									.queryParam("include-verse-numbers",   true)
 									.queryParam("include-verse-spans",     false)
 									.queryParam("use-org-id",              false)
-									.build(Map.of("verse", x)))
+									.build(Map.of("verse", x, "bible", req.getBibleVersion().id)))
 							.accept(MediaType.APPLICATION_JSON)
 							.retrieve()
 							.bodyToMono(VerseApiRaw.class)
