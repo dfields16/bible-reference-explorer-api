@@ -9,4 +9,8 @@ bibleApi:
 
 springdoc:
   swagger-ui:
-    path: /api/swagger-ui/index.html
+    path: /swagger.html
+
+server:
+  servlet:
+    context-path: /api

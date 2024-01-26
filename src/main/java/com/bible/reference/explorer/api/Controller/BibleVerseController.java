@@ -51,7 +51,7 @@ public class BibleVerseController {
 	@Autowired
 	protected WebClient bibleWebClient;
 
-	@GetMapping("/api/getReferences/{verse}/{limit}")
+	@GetMapping("/getReferences/{verse}/{limit}")
 	public CrossReferenceResult getMappingString(@PathVariable("verse") String verse, @PathVariable("limit") int limit)
 			throws Exception {
 		try {
@@ -81,7 +81,7 @@ public class BibleVerseController {
 		}
 	}
 
-	@GetMapping("/api/verify/{verse}")
+	@GetMapping("/verify/{verse}")
 	public boolean verifyVerseApi(@PathVariable("verse") String verse) throws Exception {
 		try {
 			verifyVerse(verse, true);
@@ -91,7 +91,7 @@ public class BibleVerseController {
 		}
 	}
 
-	@PostMapping("/api/verses")
+	@PostMapping("/verses")
 	public VerseResponse getVersesFromBibleAPI(@RequestBody VerseRequest req){
 		List<VerseApi> verses = Flux.fromStream(req.getVerses().stream())
 				.parallel()
