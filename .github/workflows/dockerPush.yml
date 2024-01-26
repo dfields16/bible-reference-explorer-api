@@ -54,4 +54,4 @@ jobs:
         username: ${{ secrets.HOST_USERNAME }}
         password: ${{ secrets.HOST_PASSWORD }}
         port: ${{ secrets.HOST_PORT }}
-        script: curl https://raw.githubusercontent.com/dfields16/bible-reference-explorer-infra/master/scripts/update-infra.sh && bash update-api.sh
+        script: bash update-api.sh
