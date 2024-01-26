@@ -1,0 +1,27 @@
+{"properties": [
+  {
+    "name": "bibleApi.token",
+    "type": "java.lang.String",
+    "description": "Token for the Bible API"
+  },
+  {
+    "name": "bibleApi.baseUrl",
+    "type": "java.lang.String",
+    "description": "Bible API URL'"
+  },
+  {
+    "name": "neo4j.username",
+    "type": "java.lang.String",
+    "description": "Neo4J username"
+  },
+  {
+    "name": "neo4j.password",
+    "type": "java.lang.String",
+    "description": "Neo4J password"
+  },
+  {
+    "name": "neo4j.url",
+    "type": "java.lang.String",
+    "description": "Neo4J URL"
+  }
+]}

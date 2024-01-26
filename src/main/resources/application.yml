@@ -6,3 +6,7 @@ neo4j:
 bibleApi:
   token: 1a13d45f994a3e1d68758b10d57c2963
   baseUrl: https://api.scripture.api.bible/v1/
+
+springdoc:
+  swagger-ui:
+    path: /api/swagger-ui/index.html
