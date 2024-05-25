@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.bible.reference.explorer.api.model.BibleBook;
+import com.bible.reference.explorer.api.Utils.BibleVerseUtil;
 import com.bible.reference.explorer.api.model.BibleApi.VerseApi;
 import com.bible.reference.explorer.api.model.BibleApi.VerseApiRaw;
 import com.bible.reference.explorer.api.model.BibleApi.VerseRequest;
@@ -46,17 +46,16 @@ public class BibleVerseController {
 	protected ObjectMapper objectMapper;
 
 	@Autowired
-	protected Map<String, BibleBook> bibleMap;
+	protected BibleVerseUtil bibleVerseUtil;
 
 	@Autowired
 	protected WebClient bibleWebClient;
 
 	@GetMapping("/getReferences/{verse}/{limit}")
-	public CrossReferenceResult getMappingString(@PathVariable("verse") String verse, @PathVariable("limit") int limit)
-			throws Exception {
+	public CrossReferenceResult getMappingString(@PathVariable("verse") String verse, @PathVariable("limit") int limit) throws Exception {
 		try {
-			String verseReference = verifyVerse(verse, true);
-			int validLimit = verifyLimit(limit);
+			String verseReference = bibleVerseUtil.verifyVerse(verse, true);
+			int validLimit = bibleVerseUtil.verifyLimit(limit);
 			log.info("Querying verse={} with limit={}", verseReference, validLimit);
 
 			Set<Verse> verses = new HashSet<>();
@@ -81,10 +80,31 @@ public class BibleVerseController {
 		}
 	}
 
+	@GetMapping("/findShortestPath/{verse1}/{verse2}/{limit}")
+	public CrossReferenceResult findShortestPath(@PathVariable("verse1") String v1, @PathVariable("verse2") String v2, @PathVariable("limit") int limit) throws Exception {
+		try {
+			String verse1 = bibleVerseUtil.verifyVerse(v1, true);
+			String verse2 = bibleVerseUtil.verifyVerse(v2, true);
+
+			Set<Verse> verses = new HashSet<>();
+			Set<References> references = new HashSet<>();
+
+			session.run(shortestPathQuery(verse1, verse2, limit)).list(x -> {
+				verses.addAll(x.get("NODES(p)").asList(node->node.asNode()).stream().map(node -> new Verse(node)).collect(Collectors.toList()));
+				references.addAll(x.get("RELATIONSHIPS(p)").asList(ref->ref.asRelationship()).stream().map(ref -> new References(ref)).collect(Collectors.toList()));
+				return x;
+			});
+
+			return new CrossReferenceResult(verses, references);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
 	@GetMapping("/verify/{verse}")
 	public boolean verifyVerseApi(@PathVariable("verse") String verse) throws Exception {
 		try {
-			verifyVerse(verse, true);
+			bibleVerseUtil.verifyVerse(verse, true);
 			return true;
 		} catch (Exception e) {
 			return false;
@@ -97,7 +117,7 @@ public class BibleVerseController {
 				.parallel()
 				.map(x-> {
 					try {
-						return verifyVerse(x, false);
+						return bibleVerseUtil.verifyVerse(x, false);
 					} catch (Exception e) {
 						return null;
 					}
@@ -137,30 +157,6 @@ public class BibleVerseController {
 		return null;
 	}
 
-	private int verifyLimit(int limit) {
-		if (limit <= 10) {
-			return 10;
-		} else if (limit >= 50) {
-			return 50;
-		}
-		return limit;
-	}
-
-	public String verifyVerse(String bibleRef, boolean isDbKey) throws Exception {
-		String[] parts = bibleRef.split("\\.");
-		String book = parts[0];
-		Integer chapter = Integer.valueOf(parts[1]);
-		Integer verse = Integer.valueOf(parts[2]);
-
-		BibleBook bibleBook = bibleMap.get(book);
-		if (0 < chapter && chapter <= bibleBook.getChapterCount()) {
-			if (0 < verse && verse <= bibleBook.getVerseCountList().get(chapter - 1)) {
-				return (isDbKey ? bibleBook.getDbKey() : bibleBook.getApiKey()) + "." + chapter + "." + verse;
-			}
-		}
-		throw new Exception("Invalid Bible reference.");
-	}
-
 	public Query getVerseQuery(String verseId, int limit) {
 		return new Query(
 				"CALL{" +
@@ -173,6 +169,12 @@ public class BibleVerseController {
 						"OPTIONAL MATCH (p:Verse)-[n:references]-(a:Verse)" +
 						"RETURN o,rel,p,n ",
 				parameters("verseTitle", verseId, "limit", limit));
+	}
+
+	public Query shortestPathQuery(String v1, String v2, int maxPath) {
+		return new Query(
+			"MATCH(v1:Verse{title:'" + v1 + "'}), (v2:Verse{title:'" + v2 +"'}) , p=shortestPath((v1)-[:references*1.." + maxPath + "]-(v2)) RETURN NODES(p), RELATIONSHIPS(p)"
+		);
 	}
 
 }
