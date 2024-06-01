@@ -2,6 +2,8 @@ package com.bible.reference.explorer.api.model.Neo4j;
 
 import org.neo4j.driver.types.Node;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Verse {
 	private String id;
 	private String title;
@@ -18,6 +21,7 @@ public class Verse {
 	private String chapter;
 	private String verse;
 	private String label;
+	private String level;
 
 	public Verse(Node node){
 		this.id = node.elementId();

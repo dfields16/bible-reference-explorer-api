@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -90,7 +91,8 @@ public class BibleVerseController {
 			Set<References> references = new HashSet<>();
 
 			session.run(shortestPathQuery(verse1, verse2, limit)).list(x -> {
-				verses.addAll(x.get("NODES(p)").asList(node->node.asNode()).stream().map(node -> new Verse(node)).collect(Collectors.toList()));
+				AtomicInteger level = new AtomicInteger(0);
+				verses.addAll(x.get("NODES(p)").asList(node->node.asNode()).stream().map(node -> new Verse(node)).peek(n->n.setLevel(String.valueOf(level.getAndIncrement()))).collect(Collectors.toList()));
 				references.addAll(x.get("RELATIONSHIPS(p)").asList(ref->ref.asRelationship()).stream().map(ref -> new References(ref)).collect(Collectors.toList()));
 				return x;
 			});
@@ -173,7 +175,7 @@ public class BibleVerseController {
 
 	public Query shortestPathQuery(String v1, String v2, int maxPath) {
 		return new Query(
-			"MATCH(v1:Verse{title:'" + v1 + "'}), (v2:Verse{title:'" + v2 +"'}) , p=shortestPath((v1)-[:references*1.." + maxPath + "]-(v2)) RETURN NODES(p), RELATIONSHIPS(p)"
+			"MATCH(v1:Verse{title:'" + v1 + "'}), (v2:Verse{title:'" + v2 +"'}) , p=allshortestpaths((v1)-[:references*1.." + maxPath + "]-(v2)) RETURN NODES(p), RELATIONSHIPS(p) LIMIT 10"
 		);
 	}
 
