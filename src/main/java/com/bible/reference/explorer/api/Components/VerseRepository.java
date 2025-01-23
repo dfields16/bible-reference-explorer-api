@@ -65,6 +65,7 @@ public class VerseRepository {
 
 			return new CrossReferenceResult(verses, references);
 		} catch (Exception e) {
+			log.error("Error getting references for verse={} with message={} with stackstrace={}", verse, e.getMessage(), e.getStackTrace());
 			return null;
 		}
 	}
@@ -87,6 +88,7 @@ public class VerseRepository {
 
 			return new CrossReferenceResult(verses, references);
 		} catch (Exception e) {
+			log.error("Error getting shortest path for verse1={} verse2={} with message={} with stackstrace={}", v1, v2, e.getMessage(), e.getStackTrace());
 			return null;
 		}
 	}
