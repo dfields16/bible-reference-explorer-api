@@ -14,3 +14,6 @@ springdoc:
 server:
   servlet:
     context-path: /api
+
+cache:
+  clearCron: 0 0 */4 * * *
