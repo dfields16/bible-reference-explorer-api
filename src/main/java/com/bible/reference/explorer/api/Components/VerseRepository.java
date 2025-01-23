@@ -44,13 +44,10 @@ public class VerseRepository {
 	@Cacheable("graph-references")
 	public CrossReferenceResult getReferences(String verse, int limit){
 		try {
-			String verseReference = bibleVerseUtil.verifyVerse(verse, true);
-			int validLimit = bibleVerseUtil.verifyLimit(limit);
-
 			Set<Verse> verses = new HashSet<>();
 			Set<References> references = new HashSet<>();
 
-			session.run(getVerseQuery(verseReference, validLimit)).list(x -> {
+			session.run(getVerseQuery(verse, limit)).list(x -> {
 				verses.add(new Verse(x.get("o").asNode()));
 				verses.add(new Verse(x.get("p").asNode()));
 				references.add(new References(x.get("rel").asRelationship()));
@@ -73,13 +70,10 @@ public class VerseRepository {
 	@Cacheable("graph-shortest-path")
 	public CrossReferenceResult findShortestPath(String v1, String v2, int limit) {
 		try {
-			String verse1 = bibleVerseUtil.verifyVerse(v1, true);
-			String verse2 = bibleVerseUtil.verifyVerse(v2, true);
-
 			Set<Verse> verses = new HashSet<>();
 			Set<References> references = new HashSet<>();
 
-			session.run(shortestPathQuery(verse1, verse2, limit)).list(x -> {
+			session.run(shortestPathQuery(v1, v2, limit)).list(x -> {
 				AtomicInteger level = new AtomicInteger(0);
 				verses.addAll(x.get("NODES(p)").asList(node->node.asNode()).stream().map(node -> new Verse(node)).peek(n->n.setLevel(String.valueOf(level.getAndIncrement()))).collect(Collectors.toList()));
 				references.addAll(x.get("RELATIONSHIPS(p)").asList(ref->ref.asRelationship()).stream().map(ref -> new References(ref)).collect(Collectors.toList()));
