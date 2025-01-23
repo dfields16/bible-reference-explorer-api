@@ -46,7 +46,6 @@ public class VerseRepository {
 		try {
 			String verseReference = bibleVerseUtil.verifyVerse(verse, true);
 			int validLimit = bibleVerseUtil.verifyLimit(limit);
-			log.info("Querying verse={} with limit={}", verseReference, validLimit);
 
 			Set<Verse> verses = new HashSet<>();
 			Set<References> references = new HashSet<>();

@@ -42,12 +42,18 @@ public class BibleVerseController {
 
 	@GetMapping("/getReferences/{verse}/{limit}")
 	public CrossReferenceResult getReferences(@PathVariable("verse") String verse, @PathVariable("limit") int limit) throws Exception {
-		return BRECommonUtil.timer(()-> verseRepository.getReferences(verse, limit), "Get references");
+		String verseReference = bibleVerseUtil.verifyVerse(verse, true);
+		int validLimit = bibleVerseUtil.verifyLimit(limit);
+		log.info("Querying verse={} with limit={}", verseReference, validLimit);
+		return BRECommonUtil.timer(()-> verseRepository.getReferences(verseReference, validLimit), "Get references");
 	}
 
 	@GetMapping("/findShortestPath/{verse1}/{verse2}/{limit}")
 	public CrossReferenceResult findShortestPath(@PathVariable("verse1") String v1, @PathVariable("verse2") String v2, @PathVariable("limit") int limit) throws Exception {
-		return BRECommonUtil.timer(()-> verseRepository.findShortestPath(v1, v2, limit), "Get shortest path");
+		String verse1 = bibleVerseUtil.verifyVerse(v1, true);
+		String verse2 = bibleVerseUtil.verifyVerse(v2, true);
+		log.info("Finding shortest paths between verse1={} and verse2={} with maxPath={}", verse1, verse2, limit);
+		return BRECommonUtil.timer(()-> verseRepository.findShortestPath(verse1, verse2, limit), "Get shortest path");
 	}
 
 	@GetMapping("/verify/{verse}")
