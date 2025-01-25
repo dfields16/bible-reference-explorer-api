@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -41,18 +42,18 @@ public class BibleVerseController {
 	protected VerseRepository verseRepository;
 
 	@GetMapping("/getReferences/{verse}/{limit}")
-	public CrossReferenceResult getReferences(@PathVariable("verse") String verse, @PathVariable("limit") int limit) throws Exception {
+	public CrossReferenceResult getReferences(@PathVariable("verse") String verse, @PathVariable("limit") int limit, @RequestHeader("Fingerprint") String fingerprint) throws Exception {
 		String verseReference = bibleVerseUtil.verifyVerse(verse, true);
 		int validLimit = bibleVerseUtil.verifyLimit(limit);
-		log.info("Querying verse={} with limit={}", verseReference, validLimit);
+		log.info("Querying verse={} with limit={} fingerprint={}", verseReference, validLimit, fingerprint);
 		return BRECommonUtil.timer(()-> verseRepository.getReferences(verseReference, validLimit), "Get references");
 	}
 
 	@GetMapping("/findShortestPath/{verse1}/{verse2}/{limit}")
-	public CrossReferenceResult findShortestPath(@PathVariable("verse1") String v1, @PathVariable("verse2") String v2, @PathVariable("limit") int limit) throws Exception {
+	public CrossReferenceResult findShortestPath(@PathVariable("verse1") String v1, @PathVariable("verse2") String v2, @PathVariable("limit") int limit, @RequestHeader("Fingerprint") String fingerprint) throws Exception {
 		String verse1 = bibleVerseUtil.verifyVerse(v1, true);
 		String verse2 = bibleVerseUtil.verifyVerse(v2, true);
-		log.info("Finding shortest paths between verse1={} and verse2={} with maxPath={}", verse1, verse2, limit);
+		log.info("Finding shortest paths between verse1={} and verse2={} with maxPath={} fingerprint={}", verse1, verse2, limit, fingerprint);
 		return BRECommonUtil.timer(()-> verseRepository.findShortestPath(verse1, verse2, limit), "Get shortest path");
 	}
 
@@ -67,7 +68,8 @@ public class BibleVerseController {
 	}
 
 	@PostMapping("/verses")
-	public VerseResponse getVersesFromBibleAPI(@RequestBody VerseRequest req){
+	public VerseResponse getVersesFromBibleAPI(@RequestBody VerseRequest req, @RequestHeader("Fingerprint") String fingerprint){
+		log.info("Fetching verses={} fingerprint={}", req, fingerprint);
 		List<VerseApi> verses = Flux.fromStream(req.getVerses().stream())
 				.parallel()
 				.map(x-> {
