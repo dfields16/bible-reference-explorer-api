@@ -48,6 +48,7 @@ public class VerseRepository {
 			Set<References> references = new HashSet<>();
 
 			session.run(getVerseQuery(verse, limit)).list(x -> {
+				log.info("node={}", x);
 				verses.add(new Verse(x.get("o").asNode()));
 				verses.add(new Verse(x.get("p").asNode()));
 				references.add(new References(x.get("rel").asRelationship()));
