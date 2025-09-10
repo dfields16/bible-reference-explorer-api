@@ -27,8 +27,8 @@ public class Verse {
 		this.id = node.elementId();
 		this.title = node.get("title").asString();
 		this.book = node.get("book").asString();
-		this.chapter = node.get("chapter").asString();
-		this.verse = node.get("verse").asString();
+		this.chapter = String.valueOf(node.get("chapter").asInt());//potentially revert
+		this.verse = String.valueOf(node.get("verse").asInt());//potentially revert
 		this.label = book + " " + chapter + ":" + verse;
 	}
 }
