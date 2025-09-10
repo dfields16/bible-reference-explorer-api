@@ -1,7 +1,7 @@
 neo4j:
   username: neo4j
   password: 0A&fLrKo2MVg
-  url: neo4j://localhost:7687
+  url: neo4j://neo4j:7687
 
 bibleApi:
   token: 1a13d45f994a3e1d68758b10d57c2963
