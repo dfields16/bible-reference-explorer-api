@@ -90,6 +90,10 @@ public class VerseRepository {
 	}
 
 	public Query getVerseQuery(String verseId, int limit) {
+		if(verseId.contains("Song of Songs")) {
+			verseId = verseId.replace("of Songs", "");
+		}
+
 		return new Query(
 				"CALL{" +
 						"	MATCH (v:Verse)-[rel:references]-(p:Verse) WHERE v.title = $verseTitle" +
