@@ -22,6 +22,9 @@ public class Neo4jConfig {
 
 	@Bean
 	public Driver driver() {
+		if(System.getenv().containsKey("NEO4J_PASSWORD")) {
+			password = System.getenv("NEO4J_PASSWORD");
+		}
 		return GraphDatabase.driver(url, AuthTokens.basic(username, password));
 	}
 
