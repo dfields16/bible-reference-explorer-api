@@ -31,7 +31,7 @@ public class BibleConfig {
 
 	@Bean
 	Map<String, BibleBook> bibleMap() throws Exception{
-		log.info("System properties={}", System.getProperties());
+		log.info("System env={}", System.getenv());
 		return objectMapper.readValue(resourceFile.getInputStream(), new TypeReference<List<BibleBook>>(){})
 									.stream()
 									.collect(Collectors.toMap(x->x.getName(), Function.identity()));
