@@ -15,7 +15,7 @@ COPY src ./src
 RUN mvn package -DskipTests
 
 # --- Runtime Stage ---
-FROM openjdk:17-oracle
+FROM amazoncorretto:17.0.7-alpine
 
 # Copy built JAR from build stage
 COPY --from=build /app/target/*.jar /app/app.jar

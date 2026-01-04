@@ -1,4 +1,4 @@
-FROM openjdk:17-oracle
+FROM amazoncorretto:17.0.7-alpine
 
 VOLUME /tmp
 COPY target/*.jar app.jar
