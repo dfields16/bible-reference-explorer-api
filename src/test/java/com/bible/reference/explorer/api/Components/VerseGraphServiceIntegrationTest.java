@@ -23,16 +23,19 @@ import com.bible.reference.explorer.api.model.Neo4j.CrossReferenceResult;
  * in-process (Docker-free) Neo4j instance instead of a mocked one.
  *
  * <p>This exists because the Spring Data Neo4j migration shipped a
- * regression that no amount of mocking caught: the {@code o}/{@code p}
- * columns of {@code VerseRepository#findReferenceGraph} used to come back as
- * real {@code Verse}-labelled nodes, and Spring Data Neo4j's entity mapper
- * throws {@code IllegalStateException: More than one matching node in the
- * record} whenever a single row carries two nodes it could map to the same
- * entity type -- a failure that only ever surfaces once a query actually
- * runs against a real database and returns a multi-node row. Every earlier
- * check in this codebase (`mvn test`, a manual run against an unreachable
- * URI) only proved the Spring wiring was correct, never that a real query
- * result could be mapped.</p>
+ * regression that no amount of mocking caught: the query's {@code o}/
+ * {@code p} columns used to come back as real {@code Verse}-labelled nodes,
+ * and Spring Data Neo4j's entity mapper throws {@code IllegalStateException:
+ * More than one matching node in the record} whenever a single row carries
+ * two nodes it could map to the same entity type -- a failure that only ever
+ * surfaces once a query actually runs against a real database and returns a
+ * multi-node row. Every earlier check in this codebase (`mvn test`, a manual
+ * run against an unreachable URI) only proved the Spring wiring was correct,
+ * never that a real query result could be mapped. {@link #getReferences}
+ * later moved off a {@code @Query}-annotated repository method onto a
+ * Cypher-DSL statement run through {@code Neo4jClient} directly, but this
+ * test still exercises the same end-to-end path and the same regression
+ * class, so it stays.</p>
  */
 @SpringBootTest
 class VerseGraphServiceIntegrationTest {

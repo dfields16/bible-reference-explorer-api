@@ -39,6 +39,18 @@
 			<artifactId>spring-boot-starter-data-neo4j</artifactId>
 		</dependency>
 
+		<!-- Already pulled in transitively by spring-boot-starter-data-neo4j
+		     (not individually managed by the Spring Boot parent BOM, unlike
+		     spring-data-neo4j itself, hence the explicit version, kept in
+		     sync with whatever spring-boot-starter-data-neo4j resolves,
+		     checked via `mvn dependency:tree`); declared explicitly because
+		     VerseGraphService imports it directly to build queries. -->
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-cypher-dsl</artifactId>
+			<version>2025.2.7</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
