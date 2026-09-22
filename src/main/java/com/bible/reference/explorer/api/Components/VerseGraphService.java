@@ -13,13 +13,11 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.stereotype.Service;
 
-import com.bible.reference.explorer.api.Repository.VerseEdge;
 import com.bible.reference.explorer.api.Repository.VerseReferenceRow;
 import com.bible.reference.explorer.api.Repository.VerseRepository;
 import com.bible.reference.explorer.api.model.Neo4j.CrossReferenceResult;
 import com.bible.reference.explorer.api.model.Neo4j.References;
 import com.bible.reference.explorer.api.model.Neo4j.Verse;
-import com.bible.reference.explorer.api.model.Neo4j.VerseEntity;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,10 +69,10 @@ public class VerseGraphService {
 			Set<String> mutualEdges = new HashSet<>();
 
 			for (VerseReferenceRow row : rows) {
-				addVerse(verses, row.getO());
-				addVerse(verses, row.getP());
-				addEdge(references, mutualEdges, row.getRel());
-				addEdge(references, mutualEdges, row.getN());
+				addVerse(verses, row.originId(), row.originTitle(), row.originBook(), row.originChapter(), row.originVerse());
+				addVerse(verses, row.peerId(), row.peerTitle(), row.peerBook(), row.peerChapter(), row.peerVerse());
+				addEdge(references, mutualEdges, row.edgeFrom(), row.edgeTo(), row.edgeRank());
+				addEdge(references, mutualEdges, row.nextEdgeFrom(), row.nextEdgeTo(), row.nextEdgeRank());
 			}
 
 			Map<Long, Verse> verseMap = verses.stream().collect(Collectors.toMap(Verse::getId, Function.identity()));
@@ -155,9 +153,16 @@ public class VerseGraphService {
 		}
 	}
 
-	private static void addVerse(Set<Verse> verses, VerseEntity entity) {
-		if (entity != null) {
-			verses.add(Verse.of(entity));
+	private static void addVerse(Set<Verse> verses, Long id, String title, String book, String chapter, String verse) {
+		if (id != null) {
+			verses.add(Verse.builder()
+					.id(id)
+					.title(title)
+					.book(book)
+					.chapter(chapter)
+					.verse(verse)
+					.label(book + " " + chapter + ":" + verse)
+					.build());
 		}
 	}
 
@@ -166,15 +171,15 @@ public class VerseGraphService {
 	 * so a mutual {@code references} relationship between two verses (present
 	 * in the graph as both A-&gt;B and B-&gt;A) only shows up once.
 	 */
-	private static void addEdge(Set<References> references, Set<String> mutualEdges, VerseEdge edge) {
-		if (edge == null || edge.getFrom() == null || edge.getTo() == null) {
+	private static void addEdge(Set<References> references, Set<String> mutualEdges, Long from, Long to, Integer rank) {
+		if (from == null || to == null) {
 			return;
 		}
-		if (mutualEdges.contains(edge.getTo() + "->" + edge.getFrom())) {
+		if (mutualEdges.contains(to + "->" + from)) {
 			return;
 		}
-		mutualEdges.add(edge.getFrom() + "->" + edge.getTo());
-		references.add(References.builder().from(edge.getFrom()).to(edge.getTo()).rank(edge.getRank()).build());
+		mutualEdges.add(from + "->" + to);
+		references.add(References.builder().from(from).to(to).rank(rank).build());
 	}
 
 	private record PathNode(Long id, String title, String book, String chapter, String verse, Integer level) {

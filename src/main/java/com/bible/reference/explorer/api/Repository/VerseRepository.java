@@ -26,12 +26,32 @@ public interface VerseRepository extends Neo4jRepository<VerseEntity, Long> {
 	 * verse titled {@code verseTitle}, plus, for each of those edges' far
 	 * endpoint, its own {@code references} edges one hop further out. This
 	 * reproduces the shape the original hand-written {@code getVerseQuery}
-	 * Cypher returned (columns {@code o}/{@code rel}/{@code p}/{@code n}), just
-	 * mapped into real entities/projections instead of raw driver
-	 * {@code Node}/{@code Relationship} objects.
+	 * Cypher returned (columns {@code o}/{@code rel}/{@code p}/{@code n}, here
+	 * named {@code origin}/{@code edge}/{@code peer}/{@code nextEdge}).
+	 *
+	 * <p>Every column is a flat scalar, and {@link VerseReferenceRow}'s
+	 * getters are flat scalars too -- deliberately not nested projections
+	 * (e.g. a {@code getOrigin()} returning some {@code VerseNode} type), for
+	 * two reasons that only surface once a query actually runs against a real
+	 * database: returning a verse as a real {@code Verse} node trips "More
+	 * than one matching node in the record" when the same row also carries
+	 * the *other* endpoint as a same-labelled node (SDN can't tell which of
+	 * two same-labelled nodes in one row is the query root), and returning it
+	 * as a map literal mapped through a *nested* projection interface trips
+	 * "Invalid property 'x' of bean class VerseEntity" (SDN resolves a nested
+	 * projection's getters as graph-property paths off the repository's
+	 * entity type, not as raw columns). Flattening every field onto
+	 * {@link VerseReferenceRow} directly avoids both.</p>
+	 *
+	 * <p>Column/getter names also avoid a two-letter prefix immediately
+	 * followed by another capital (e.g. the previous {@code oId}/{@code pId})
+	 * -- {@code java.beans.Introspector.decapitalize} special-cases two
+	 * leading capitals as an acronym and leaves them as-is, so
+	 * {@code getOId()} resolves to property {@code "OId"}, not {@code "oId"},
+	 * silently breaking the column-name match.</p>
 	 */
 	@Query("""
-			CALL {
+			CALL () {
 			  MATCH (v:Verse)-[rel:references]-(p:Verse)
 			  WHERE v.title = $verseTitle
 			  RETURN rel
@@ -40,10 +60,10 @@ public interface VerseRepository extends Neo4jRepository<VerseEntity, Long> {
 			}
 			OPTIONAL MATCH (o:Verse)-[rel]-(p:Verse)
 			OPTIONAL MATCH (p:Verse)-[n:references]-(a:Verse)
-			RETURN o AS o,
-			       {rank: toInteger(rel.rank), from: id(startNode(rel)), to: id(endNode(rel))} AS rel,
-			       p AS p,
-			       {rank: toInteger(n.rank), from: id(startNode(n)), to: id(endNode(n))} AS n
+			RETURN id(o) AS originId, o.title AS originTitle, o.book AS originBook, o.chapter AS originChapter, o.verse AS originVerse,
+			       toInteger(rel.rank) AS edgeRank, id(startNode(rel)) AS edgeFrom, id(endNode(rel)) AS edgeTo,
+			       id(p) AS peerId, p.title AS peerTitle, p.book AS peerBook, p.chapter AS peerChapter, p.verse AS peerVerse,
+			       toInteger(n.rank) AS nextEdgeRank, id(startNode(n)) AS nextEdgeFrom, id(endNode(n)) AS nextEdgeTo
 			""")
 	List<VerseReferenceRow> findReferenceGraph(@Param("verseTitle") String verseTitle, @Param("limit") int limit);
 }
