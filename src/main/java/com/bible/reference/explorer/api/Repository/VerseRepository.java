@@ -49,9 +49,16 @@ public interface VerseRepository extends Neo4jRepository<VerseEntity, Long> {
 	 * leading capitals as an acronym and leaves them as-is, so
 	 * {@code getOId()} resolves to property {@code "OId"}, not {@code "oId"},
 	 * silently breaking the column-name match.</p>
+	 *
+	 * <p>The opening subquery deliberately stays {@code CALL { ... }}, not the
+	 * newer {@code CALL () { ... }} variable-scope-clause form: the latter is
+	 * only valid Cypher from Neo4j 5.9 on, and the production server this app
+	 * actually talks to rejects it with a hard syntax error, not just the
+	 * deprecation warning newer servers emit for the old form. Don't "fix"
+	 * that warning without confirming the server version in use.</p>
 	 */
 	@Query("""
-			CALL () {
+			CALL {
 			  MATCH (v:Verse)-[rel:references]-(p:Verse)
 			  WHERE v.title = $verseTitle
 			  RETURN rel
