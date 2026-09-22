@@ -11,8 +11,11 @@ RUN mvn dependency:go-offline
 # Copy the rest of the source code
 COPY src ./src
 
-# Package the application
-RUN mvn package -DskipTests
+# Package the application. -Dmaven.test.skip=true (not -DskipTests) so test
+# sources are never compiled here -- -DskipTests still runs test-compile,
+# which would require test-scope dependencies (e.g. neo4j-harness, used only
+# by VerseGraphServiceIntegrationTest) to resolve inside the image build.
+RUN mvn package -Dmaven.test.skip=true
 
 # --- Runtime Stage ---
 FROM amazoncorretto:17.0.7-alpine
