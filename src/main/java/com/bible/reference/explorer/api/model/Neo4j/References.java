@@ -19,6 +19,6 @@ public class References {
 	public References(Relationship rel){
 		this.from = rel.startNodeElementId();
 		this.to = rel.endNodeElementId();
-		this.rank = Integer.valueOf(rel.get("rank").asString());
+		this.rank = rel.get("rank").asInt();
 	}
 }
