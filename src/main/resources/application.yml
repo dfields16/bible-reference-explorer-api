@@ -1,7 +1,9 @@
-neo4j:
-  username: neo4j
-  password:
-  url: neo4j://neo4j:7687
+spring:
+  neo4j:
+    uri: neo4j://neo4j:7687
+    authentication:
+      username: neo4j
+      password: ${NEO4J_PASSWORD:}
 
 bibleApi:
   token:

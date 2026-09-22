@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.bible.reference.explorer.api.Components.VerseRepository;
+import com.bible.reference.explorer.api.Components.VerseGraphService;
 import com.bible.reference.explorer.api.Utils.BRECommonUtil;
 import com.bible.reference.explorer.api.Utils.BibleVerseUtil;
 import com.bible.reference.explorer.api.model.BibleApi.VerseApi;
@@ -39,14 +39,14 @@ public class BibleVerseController {
 	protected WebClient bibleWebClient;
 
 	@Autowired
-	protected VerseRepository verseRepository;
+	protected VerseGraphService verseGraphService;
 
 	@GetMapping("/getReferences/{verse}/{limit}")
 	public CrossReferenceResult getReferences(@PathVariable("verse") String verse, @PathVariable("limit") int limit, @RequestHeader("Fingerprint") String fingerprint) throws Exception {
 		String verseReference = bibleVerseUtil.verifyVerse(verse, true);
 		int validLimit = bibleVerseUtil.verifyLimit(limit);
 		log.info("Querying verse={} with limit={} fingerprint={}", verseReference, validLimit, fingerprint);
-		return BRECommonUtil.timer(()-> verseRepository.getReferences(verseReference, validLimit), "Get references");
+		return BRECommonUtil.timer(()-> verseGraphService.getReferences(verseReference, validLimit), "Get references");
 	}
 
 	@GetMapping("/findShortestPath/{verse1}/{verse2}/{limit}")
@@ -54,7 +54,7 @@ public class BibleVerseController {
 		String verse1 = bibleVerseUtil.verifyVerse(v1, true);
 		String verse2 = bibleVerseUtil.verifyVerse(v2, true);
 		log.info("Finding shortest paths between verse1={} and verse2={} with maxPath={} fingerprint={}", verse1, verse2, limit, fingerprint);
-		return BRECommonUtil.timer(()-> verseRepository.findShortestPath(verse1, verse2, limit), "Get shortest path");
+		return BRECommonUtil.timer(()-> verseGraphService.findShortestPath(verse1, verse2, limit), "Get shortest path");
 	}
 
 	@GetMapping("/verify/{verse}")
