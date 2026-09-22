@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:21-jre-jammy
 
 VOLUME /tmp
 COPY target/*.jar app.jar
