@@ -68,12 +68,13 @@ public class VerseGraphService {
 
 			Set<Verse> verses = new HashSet<>();
 			Set<References> references = new HashSet<>();
+			Set<String> mutualEdges = new HashSet<>();
 
 			for (VerseReferenceRow row : rows) {
 				addVerse(verses, row.getO());
 				addVerse(verses, row.getP());
-				addEdge(references, row.getRel());
-				addEdge(references, row.getN());
+				addEdge(references, mutualEdges, row.getRel());
+				addEdge(references, mutualEdges, row.getN());
 			}
 
 			Map<Long, Verse> verseMap = verses.stream().collect(Collectors.toMap(Verse::getId, Function.identity()));
@@ -160,10 +161,20 @@ public class VerseGraphService {
 		}
 	}
 
-	private static void addEdge(Set<References> references, VerseEdge edge) {
-		if (edge != null && edge.getFrom() != null && edge.getTo() != null) {
-			references.add(References.builder().from(edge.getFrom()).to(edge.getTo()).rank(edge.getRank()).build());
+	/**
+	 * Skips adding an edge if its reverse direction has already been added,
+	 * so a mutual {@code references} relationship between two verses (present
+	 * in the graph as both A-&gt;B and B-&gt;A) only shows up once.
+	 */
+	private static void addEdge(Set<References> references, Set<String> mutualEdges, VerseEdge edge) {
+		if (edge == null || edge.getFrom() == null || edge.getTo() == null) {
+			return;
 		}
+		if (mutualEdges.contains(edge.getTo() + "->" + edge.getFrom())) {
+			return;
+		}
+		mutualEdges.add(edge.getFrom() + "->" + edge.getTo());
+		references.add(References.builder().from(edge.getFrom()).to(edge.getTo()).rank(edge.getRank()).build());
 	}
 
 	private record PathNode(Long id, String title, String book, String chapter, String verse, Integer level) {

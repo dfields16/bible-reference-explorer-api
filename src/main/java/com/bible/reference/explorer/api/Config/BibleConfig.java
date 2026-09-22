@@ -17,6 +17,9 @@ import com.bible.reference.explorer.api.model.BibleBook;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @EnableCaching
 @Configuration
 public class BibleConfig {
@@ -29,7 +32,6 @@ public class BibleConfig {
 
 	@Bean
 	Map<String, BibleBook> bibleMap() throws Exception{
-
 		return objectMapper.readValue(resourceFile.getInputStream(), new TypeReference<List<BibleBook>>(){})
 									.stream()
 									.collect(Collectors.toMap(x->x.getName(), Function.identity()));

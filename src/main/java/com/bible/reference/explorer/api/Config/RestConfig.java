@@ -13,7 +13,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class RestConfig implements WebMvcConfigurer {
 
-	@Value("${bibleApi.token}")
+	@Value("${bibleApi.token:}")
 	private String bibleApiToken;
 
 	@Value("${bibleApi.baseUrl}")
@@ -21,6 +21,10 @@ public class RestConfig implements WebMvcConfigurer {
 
 	@Bean
 	public WebClient bibleWebClient() {
+		if(System.getenv().containsKey("BIBLE_API_TOKEN")) {
+			bibleApiToken = System.getenv().get("BIBLE_API_TOKEN");
+		}
+
 		return WebClient.builder()
 				.baseUrl(bibleBaseUrl)
 				.defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
