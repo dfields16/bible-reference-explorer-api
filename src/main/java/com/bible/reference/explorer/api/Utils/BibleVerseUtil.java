@@ -24,7 +24,7 @@ public class BibleVerseUtil {
 
 	public String verifyVerse(String bibleRef, boolean isDbKey) throws Exception {
 		String[] parts = bibleRef.split("\\.");
-		String book = parts[0];
+		String book = parts[0].replace("%20", " ").replace("+", " ");
 		Integer chapter = Integer.valueOf(parts[1]);
 		Integer verse = Integer.valueOf(parts[2]);
 

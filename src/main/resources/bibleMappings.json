@@ -176,6 +176,14 @@
 		"verseCountList": [17, 17, 11, 16, 16, 13, 13, 14]
 	},
 	{
+		"name": "Song of Solomon",
+		"group": "Old Testament",
+		"apiKey": "SNG",
+		"dbKey": "Song",
+		"chapterCount": 8,
+		"verseCountList": [17, 17, 11, 16, 16, 13, 13, 14]
+	},
+	{
 		"name": "Isaiah",
 		"group": "Old Testament",
 		"apiKey": "ISA",

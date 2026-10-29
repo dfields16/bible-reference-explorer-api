@@ -2,6 +2,7 @@ package com.bible.reference.explorer.api.Components;
 
 import static org.neo4j.driver.Values.*;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -46,12 +47,13 @@ public class VerseRepository {
 		try {
 			Set<Verse> verses = new HashSet<>();
 			Set<References> references = new HashSet<>();
+			Set<String> mutualEdges = new HashSet<>();
 
 			session.run(getVerseQuery(verse, limit)).list(x -> {
 				verses.add(new Verse(x.get("o").asNode()));
 				verses.add(new Verse(x.get("p").asNode()));
-				references.add(new References(x.get("rel").asRelationship()));
-				references.add(new References(x.get("n").asRelationship()));
+				addEdge(new References(x.get("rel").asRelationship()), references, mutualEdges);
+				addEdge(new References(x.get("n").asRelationship()), references, mutualEdges);
 				return x;
 			});
 
@@ -105,5 +107,13 @@ public class VerseRepository {
 		return new Query(
 			"MATCH(v1:Verse{title:'" + v1 + "'}), (v2:Verse{title:'" + v2 +"'}) , p=allshortestpaths((v1)-[:references*1.." + maxPath + "]-(v2)) RETURN NODES(p), RELATIONSHIPS(p) LIMIT 10"
 		);
+	}
+
+	public void addEdge(References rel, Collection<References> references, Collection<String> mutualEdges) {
+		if (!mutualEdges.contains(rel.getTo() + "->" + rel.getFrom())) {
+			String name = rel.getFrom() + "->" + rel.getTo();
+			references.add(rel);
+			mutualEdges.add(name);
+		}
 	}
 }
