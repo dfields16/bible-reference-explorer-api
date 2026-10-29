@@ -17,3 +17,9 @@ server:
 
 cache:
   clearCron: 0 0 */4 * * *
+
+# The usage log's database (see DailyStatsRecorder). Leave empty to skip the daily totals; set
+# SUPABASE_URL and SUPABASE_SECRET_KEY in the environment. The secret key is never the publishable one.
+supabase:
+  url:
+  secret-key:
