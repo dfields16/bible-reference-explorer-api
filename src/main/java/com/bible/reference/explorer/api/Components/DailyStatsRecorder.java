@@ -8,8 +8,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -42,16 +40,6 @@ public class DailyStatsRecorder {
 			@Value("${supabase.secret-key:}") String secretKey) {
 		this.supabaseUrl = supabaseUrl == null ? "" : supabaseUrl.replaceAll("/+$", "");
 		this.secretKey = secretKey == null ? "" : secretKey;
-	}
-
-	/**
-	 * TEMPORARY: also run once as soon as the app is up, so a deploy shows right away in the log whether
-	 * the Supabase URL and key work, without waiting for 00:20 UTC. Remove this method once verified.
-	 */
-	@EventListener(ApplicationReadyEvent.class)
-	public void recordOnStartup() {
-		log.info("Recording daily stats on startup (temporary check)");
-		recordDailyStats();
 	}
 
 	/** 00:20 UTC, just after the day ends, which is the day {@code record_daily_stats} totals by default. */
